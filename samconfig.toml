@@ -1,0 +1,14 @@
+
+version = 0.1
+
+[default.global.parameters]
+stack_name = "login-demo"
+region = "us-east-1"
+
+[default.validate.parameters]
+lint = true
+
+[default.deploy.parameters]
+stack_name = "login-demo"
+region = "us-east-1"
+confirm_changeset = true

@@ -1,0 +1,52 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: Static Login Page Hosting using Amazon S3
+
+Resources:
+
+  # S3 bucket for hosting the login page
+  LoginWebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: index.html
+
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+      VersioningConfiguration:
+        Status: Suspended
+
+  # Allow public access to website files
+  LoginWebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoginWebsiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowPublicWebsiteAccess
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:GetObject
+            Resource: !Sub '${LoginWebsiteBucket.Arn}/*'
+
+Outputs:
+
+  LoginBucketName:
+    Description: S3 bucket storing the login page
+    Value: !Ref LoginWebsiteBucket
+
+  LoginWebsiteURL:
+    Description: S3 static website endpoint
+    Value: !GetAtt LoginWebsiteBucket.WebsiteURL
