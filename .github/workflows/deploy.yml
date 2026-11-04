@@ -51,12 +51,12 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
-
       - name: Verify AWS credentials
         run: aws sts get-caller-identity
-              - name: Verify CloudFormation access
+
+      - name: Verify CloudFormation access
         run: |
           aws cloudformation describe-stacks \
-            --region ${{ vars.AWS_REGION }} \
+            --region "${{ vars.AWS_REGION }}" \
             --query "Stacks[].StackName" \
             --output table
