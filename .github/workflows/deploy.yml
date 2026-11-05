@@ -57,7 +57,7 @@ jobs:
       # 7. Upload frontend to S3
       - name: Upload frontend to S3
         run: |
-          aws s3 sync ./frontend/ s3://${{ vars.FRONTEND_BUCKET }}
+          aws s3 sync ./frontend/ s3://${{ vars.FRONTENDS3_BUCKET }}
 
       # 8. Invalidate CloudFront cache
       - name: Invalidate CloudFront cache
