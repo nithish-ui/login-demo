@@ -54,14 +54,24 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
 
-      - name: Verify frontend bucket variable
+           # 7. Verify frontend S3 bucket variable
+      - name: Verify frontend S3 bucket
+        env:
+          FRONTENDS3_BUCKET: ${{ vars.FRONTENDS3_BUCKET }}
         run: |
-          echo "Frontend bucket: ${{ vars.FRONTENDS3_BUCKET }}"
-          test -n "${{ vars.FRONTENDS3_BUCKET }}" || exit 1
-      # 7. Upload frontend to S3
+          if [ -z "$FRONTENDS3_BUCKET" ]; then
+            echo "ERROR: FRONTENDS3_BUCKET repository variable is missing or empty."
+            exit 1
+          fi
+
+          echo "S3 bucket configured: $FRONTENDS3_BUCKET"
+
+      # 8. Upload frontend to S3
       - name: Upload frontend to S3
+        env:
+          FRONTENDS3_BUCKET: ${{ vars.FRONTENDS3_BUCKET }}
         run: |
-          aws s3 sync ./frontend/ s3://${{ vars.FRONTENDS3_BUCKET }}
+          aws s3 sync ./frontend/ "s3://${FRONTENDS3_BUCKET}/"
 
       # 8. Invalidate CloudFront cache
       - name: Invalidate CloudFront cache
