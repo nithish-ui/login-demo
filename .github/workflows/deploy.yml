@@ -8,8 +8,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
 
 jobs:
   deploy:
@@ -17,46 +19,49 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
+      # 3. Verify AWS credentials
+      - name: Verify AWS credentials
+        run: aws sts get-caller-identity
+
+      # 4. Setup AWS SAM
       - name: Setup AWS SAM
         uses: aws-actions/setup-sam@v2
 
+      # 5. Build SAM application
       - name: Build SAM application
         run: sam build
 
+      # 6. Deploy SAM application
       - name: Deploy SAM application
         run: |
           sam deploy \
             --stack-name ${{ vars.SAM_STACK_NAME }} \
-            --region ${{ vars.AWS_REGION }} \
+            --region ${{ env.AWS_REGION }} \
             --resolve-s3 \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
 
+      # 7. Upload frontend to S3
       - name: Upload frontend to S3
         run: |
           aws s3 sync ./frontend/ s3://${{ vars.FRONTEND_BUCKET }}
 
+      # 8. Invalidate CloudFront cache
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
-      - name: Verify AWS credentials
-        run: aws sts get-caller-identity
-
-      - name: Verify CloudFormation access
-        run: |
-          aws cloudformation describe-stacks \
-            --region "${{ vars.AWS_REGION }}" \
-            --query "Stacks[].StackName" \
-            --output table
