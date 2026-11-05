@@ -54,6 +54,10 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
 
+      - name: Verify frontend bucket variable
+        run: |
+          echo "Frontend bucket: ${{ vars.FRONTENDS3_BUCKET }}"
+          test -n "${{ vars.FRONTENDS3_BUCKET }}" || exit 1
       # 7. Upload frontend to S3
       - name: Upload frontend to S3
         run: |
